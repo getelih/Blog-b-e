@@ -10,12 +10,17 @@ class TagController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $tags = Tag::orderBy('created_at', 'desc')->paginate(10);
+
+        if ($request->ajax()) {
+
+            return response()->json(['tags' => $tags]);
+        }
+
         return view('tags.index', compact('tags'));
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -29,26 +34,29 @@ class TagController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255|unique:tags,name',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:tags,name',
+        ]);
 
-    $tag = Tag::create(['name' => $request->name]);
+        $tag = Tag::create(['name' => $request->name]);
 
-    if ($request->ajax()) {
-        return response()->json(['success' => true, 'tag' => $tag]);
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'tag' => $tag]);
+        }
+
+        return redirect()->route('tags.index')->with('success', 'Tag created successfully.');
     }
-
-    return redirect()->route('tags.index')->with('success', 'Tag created successfully.');
-}
-
 
     /**
      * Display the specified resource.
      */
-    public function show(Tag $tag)
+    public function show(Request $request, Tag $tag)
     {
+        if ($request->ajax()) {
+            return response()->json(['tag' => $tag]);
+        }
+
         return view('tags.show', compact('tag'));
     }
 
@@ -73,15 +81,23 @@ class TagController extends Controller
             'name' => $request->name,
         ]);
 
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'tag' => $tag]);
+        }
+
         return redirect()->route('tags.index')->with('success', 'Tag updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Tag $tag)
+    public function destroy(Request $request, Tag $tag)
     {
         $tag->delete();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()->route('tags.index')->with('success', 'Tag deleted successfully.');
     }
